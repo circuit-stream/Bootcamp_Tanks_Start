@@ -17,13 +17,13 @@ namespace Tanks
         {
             LoadingGraphics.Enable();
 
-            // TODO: Join target room
+            // TODO(DONE): Join target room
             PhotonNetwork.JoinRoom(roomInfo.Name);
         }
 
         public void Setup(RoomInfo info)
         {
-            // TODO: Store and update room information
+            // TODO(DONE): Store and update room information
             roomInfo = info;
 
             lobbyNameText.tag = info.Name;

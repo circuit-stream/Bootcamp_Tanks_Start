@@ -23,7 +23,7 @@ namespace Tanks
 
         private Player player;
 
-        public int PlayerTeam // TODO: Update player team to other clients
+        public int PlayerTeam // TODO (DONE): Update player team to other clients
         { 
             get => player.CustomProperties.ContainsKey("Team") ? (int) player.CustomProperties["Team"] : 0;
             set
@@ -33,21 +33,22 @@ namespace Tanks
             }
         }  
 
-        public bool IsPlayerReady // TODO: Update player ready status to other clients
+        public bool IsPlayerReady // TODO(DONE): Update player ready status to other clients
         {
             get => player.CustomProperties.ContainsKey("IsReady") && (bool)player.CustomProperties["IsReady"];
             set
             {
                 ExitGames.Client.Photon.Hashtable hash = new ExitGames.Client.Photon.Hashtable { { "IsReady", value } };
+                player.SetCustomProperties(hash);
             } 
 
         } 
 
-        private bool IsLocalPlayer => Equals(player, PhotonNetwork.LocalPlayer); // TODO: Get if this entry belongs to the local player
+        private bool IsLocalPlayer => Equals(player, PhotonNetwork.LocalPlayer); // TODO(DONE): Get if this entry belongs to the local player
 
         public void Setup(Player entryPlayer)
         {
-            // TODO: Store and update player information
+            // TODO(DONE): Store and update player information
             player = entryPlayer;
             if (IsLocalPlayer)
             {
@@ -82,7 +83,7 @@ namespace Tanks
 
         private void OnChangeTeamButtonClicked()
         {
-            // TODO: Change player team
+            // TODO(DONE): Change player team
             PlayerTeam = (PlayerTeam + 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
 
         }

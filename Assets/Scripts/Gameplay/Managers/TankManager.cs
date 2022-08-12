@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using Photon.Pun;
+using Photon.Realtime;
 
 namespace Tanks
 {
@@ -10,10 +12,14 @@ namespace Tanks
         private TankHealth tankHealth;
         private GameObject canvasGameObject;
 
+        private Player player;
+        private PhotonView photonView;
+
         // TODO: Get player nickname
         public string ColoredPlayerName => $"<color=#{ColorUtility.ToHtmlStringRGB(teamConfig.color)}>Nickname</color>";
         public int Wins { get; set; }
 
+        [PunRPC]
         public void OnHit(float explosionForce, Vector3 explosionSource, float explosionRadius, float damage)
         {
             tankMovement.GotHit(explosionForce, explosionSource, explosionRadius);
@@ -32,6 +38,7 @@ namespace Tanks
 
         private void SetupComponents()
         {
+            photonView = GetComponent<PhotonView>();
             tankShooting = GetComponent<TankShooting>();
             tankHealth = GetComponent<TankHealth>();
             tankMovement = GetComponent<TankMovement>();

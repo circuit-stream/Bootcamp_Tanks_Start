@@ -19,18 +19,19 @@ namespace Tanks
 
         private void Start()
         {
-            // TODO: Connect to photon server (using settings we just configured (app id))
+            // TODO (DONE): Connect to photon server (using settings we just configured (app id))
             if (!PhotonNetwork.IsConnectedAndReady)
             {
                 PhotonNetwork.ConnectUsingSettings();
-                //return;
+
             }
 
             // playButton.onClick.AddListener(JoinRandomRoom);
-            playButton.onClick.AddListener(() => OnConnectionDependentActionClicked(JoinRandomRoom));
+            
             lobbyButton.onClick.AddListener(GoToLobbyList);
             settingsButton.onClick.AddListener(OnSettingsButtonClicked);
-
+            // moved to OnConnectedToMaster
+            // PlayButton.onClick.AddListener(() => OnConnectionDependentActionClicked(JoinRandomRoom));
             settingsPopup.gameObject.SetActive(false);
             settingsPopup.Setup();
 
@@ -42,6 +43,8 @@ namespace Tanks
         {
             base.OnConnectedToMaster();
             Debug.Log("Connected to Master");
+            // moved here from Start
+            playButton.onClick.AddListener(() => OnConnectionDependentActionClicked(JoinRandomRoom));
             pendingAction?.Invoke();
             PhotonNetwork.AutomaticallySyncScene = false;
         }
@@ -53,7 +56,7 @@ namespace Tanks
 
         public void JoinRandomRoom()
         {
-            // TODO: Connect to a random room
+            // TODO(DONE): Connect to a random room
             RoomOptions roomOptions = new RoomOptions { IsOpen = true, MaxPlayers = 4};
             PhotonNetwork.JoinRandomOrCreateRoom(roomOptions: roomOptions);
         }

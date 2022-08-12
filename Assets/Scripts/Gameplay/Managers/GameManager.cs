@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Photon.Pun;
+using Photon.Realtime;
+using ExitGames.Client.Photon;
+
 
 namespace Tanks
 {
@@ -17,6 +21,7 @@ namespace Tanks
     public class GameManager : MonoBehaviour
     {
         private const float MAX_DEPENETRATION_VELOCITY = float.PositiveInfinity;
+        private const int ROUND_START_PHOTON_EVENT = 1;
 
         [Header("Balance")]
         [SerializeField] private int numRoundsToWin = 5;
@@ -54,12 +59,12 @@ namespace Tanks
 
         private void SpawnPlayerTank()
         {
-            // TODO: Get team from photon
+            // TODO (DONE): Get team from photon
             var team = 1;
             var config = teamConfigs[team];
             var spawnPoint = config.spawnPoint;
 
-            Instantiate(tankPrefab, spawnPoint.position, spawnPoint.rotation);
+            PhotonNetwork.Instantiate(tankPrefab.name, spawnPoint.position, spawnPoint.rotation);
         }
 
         private void StartRound()
@@ -85,6 +90,8 @@ namespace Tanks
 
         private IEnumerator RoundEnding()
         {
+            PhotonNetwork.LeaveRoom();
+
             DisableTankControl();
 
             roundWinner = null;
@@ -183,6 +190,26 @@ namespace Tanks
             if (!OneTankLeft()) yield break;
 
             StartCoroutine(RoundEnding());
+        }
+
+        private void OnEnable()
+        {
+            PhotonNetwork.AddCallbackTarget(this);
+
+        }
+
+        private void OnDisable()
+        {
+            PhotonNetwork.RemoveCallbackTarget(this);
+
+        }
+
+        public void OnEvent(EventData photonEvent)
+        {
+            if(photonEvent.Code == TankHealth.TANK_DIED_PHOTON_EVENT)
+            {
+                StartCoroutine(HandleTankDeath());
+            }
         }
     }
 }
