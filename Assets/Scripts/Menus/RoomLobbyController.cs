@@ -65,23 +65,22 @@ namespace Tanks
             UpdateStartButton();
         }
 
-        private void UpdateStartButton()
-        {
-            // TODO (DONE): Show start button only to the master client and when all players are ready
-            startButton.gameObject.SetActive(PhotonNetwork.IsMasterClient && IsEveryPlayerReady);
-        }
-
         public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
             lobbyEntries[targetPlayer].UpdateVisuals();
-            UpdateStartButton();
 
+            UpdateStartButton();
         }
 
         public override void OnMasterClientSwitched(Player newMasterClient)
         {
             UpdateStartButton();
+        }
 
+        private void UpdateStartButton()
+        {
+            // TODO (DONE): Show start button only to the master client and when all players are ready
+            startButton.gameObject.SetActive(PhotonNetwork.IsMasterClient && IsEveryPlayerReady);
         }
 
         private void OnStartButtonClicked()

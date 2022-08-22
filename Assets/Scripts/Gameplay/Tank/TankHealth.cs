@@ -54,7 +54,7 @@ namespace Tanks
             currentHealth -= amount;
             SetHealthUI();
 
-            if (currentHealth <= 0f && !dead)
+            if (currentHealth <= 0f && !dead && photonView.IsMine)
                 OnDeath();
         }
 
@@ -70,7 +70,7 @@ namespace Tanks
 
             // TODO (DONE): Notify server that this tank died
             RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
-
+            PhotonNetwork.RaiseEvent(TANK_DIED_PHOTON_EVENT, photonView.Owner, raiseEventOptions, SendOptions.SendReliable);
             
         }
 

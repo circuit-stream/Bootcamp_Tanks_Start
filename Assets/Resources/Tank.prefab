@@ -10591,6 +10591,11 @@ MonoBehaviour:
   engineIdling: {fileID: 8300000, guid: 4932ab25b84dd7649b80af68a9660ddc, type: 3}
   engineDriving: {fileID: 8300000, guid: d7ca9fb5aa30155449192b23d7fb3336, type: 3}
   pitchRange: 0.2
+  turboSpeed: 18
+  turboDuration: 1
+  turboCooldown: 5
+  turboParticles: {fileID: 73834590170880408, guid: 4380ddb977821b849bff2105e5e7aedd,
+    type: 3}
 --- !u!114 &11409376
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10630,6 +10635,7 @@ MonoBehaviour:
   minLaunchForce: 15
   maxLaunchForce: 30
   maxChargeTime: 0.75
+  homingMissileInstantiateOffset: 4
 --- !u!114 &4223552225813782383
 MonoBehaviour:
   m_ObjectHideFlags: 0
