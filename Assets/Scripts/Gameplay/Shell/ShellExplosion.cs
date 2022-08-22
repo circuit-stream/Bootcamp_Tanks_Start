@@ -13,6 +13,12 @@ namespace Tanks
         public float maxLifeTime = 2f;
         public float explosionRadius = 5f;
 
+        private bool IsShieldBlocking(Vector3 tankPosition)
+        {
+            var direction = tankPosition - transform.position;
+            return Physics.Raycast(transform.position, direction, direction.magnitude, LayerMask.GetMask("Shield"));
+        }
+
         private void Start()
         {
             Destroy(gameObject, maxLifeTime);
@@ -20,20 +26,39 @@ namespace Tanks
 
         private void OnTriggerEnter(Collider other)
         {
+            PlayExplosionEffect();
+            TryDamageTanks(other);
+
+            var photonView = GetComponent<PhotonView>();
+            if (photonView != null)
+            {
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    PhotonNetwork.Destroy(photonView);
+                }
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
+
+        private void PlayExplosionEffect()
+        {
+            if (explosionParticles == null) return;
+
             explosionParticles.transform.parent = null;
             explosionParticles.Play();
             explosionAudio.Play();
 
             ParticleSystem.MainModule mainModule = explosionParticles.main;
             Destroy(explosionParticles.gameObject, mainModule.duration);
-            Destroy(gameObject);
-
-            TryDamageTanks();
+            explosionParticles = null;
         }
 
-        private void TryDamageTanks()
+        private void TryDamageTanks(Collider other)
         {
-            if (!PhotonNetwork.IsMasterClient)
+            if (!PhotonNetwork.IsMasterClient || other.gameObject.layer == LayerMask.NameToLayer("Shield"))
             {
                 return;
             }

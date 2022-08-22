@@ -60,7 +60,8 @@ namespace Tanks
         private void SpawnPlayerTank()
         {
             // TODO (DONE): Get team from photon
-            var team = 1;
+            var team = (int)PhotonNetwork.LocalPlayer.CustomProperties["Team"];
+
             var config = teamConfigs[team];
             var spawnPoint = config.spawnPoint;
 

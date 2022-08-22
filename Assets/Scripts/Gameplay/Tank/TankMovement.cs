@@ -8,6 +8,7 @@ namespace Tanks
     {
         private const string MOVEMENT_AXIS_NAME = "Vertical";
         private const string TURN_AXIS_NAME = "Horizontal";
+        private const string TURBO_BUTTON = "Turbo";
 
         public float speed = 12f;
         public float turnSpeed = 180f;
@@ -15,6 +16,17 @@ namespace Tanks
         public AudioClip engineIdling;
         public AudioClip engineDriving;
 		public float pitchRange = 0.2f;
+
+        public float turboSpeed = 18;
+        public float turboDuration = 1;
+        public float turboCooldown = 5;
+        public ParticleSystem turboParticles;
+        private float remainingTurboCooldown;
+        private float remainingTurboDuration;
+
+        private bool CanUseTurbo => remainingTurboCooldown <= 0;
+        private bool IsTurboActive => remainingTurboDuration > 0;
+        private float CurrentSpeed => IsTurboActive ? turboSpeed : speed;
 
         private Rigidbody tankRigidbody;
         private float movementInputValue;
@@ -62,6 +74,8 @@ namespace Tanks
 
         private void Update()
         {
+            UpdateTurbo();
+
             if (!photonView.IsMine)
             {
                 return;
@@ -73,6 +87,34 @@ namespace Tanks
             EngineAudio();
         }
 
+        [PunRPC]
+        private void Turbo()
+        {
+            remainingTurboDuration = turboDuration;
+            turboParticles.Play();
+        }
+
+       private void UpdateTurbo()
+        {
+            remainingTurboDuration -= Time.deltaTime;
+            if(!IsTurboActive && turboParticles.isPlaying)
+            {
+                turboParticles.Stop();
+            }
+        }
+
+        private void TryUseTurbo()
+        {
+            remainingTurboCooldown -= Time.deltaTime;
+            if (!CanUseTurbo || !Input.GetButtonDown(TURBO_BUTTON))
+            {
+                return;
+            }
+
+            remainingTurboCooldown = turboCooldown;
+            photonView.RPC("Turbo", RpcTarget.All);
+
+        }
         private void EngineAudio()
         {
             // If there is no input (the tank is stationary)...

@@ -27,11 +27,10 @@ namespace Tanks
             }
 
             // playButton.onClick.AddListener(JoinRandomRoom);
-            
+            playButton.onClick.AddListener(() => OnConnectionDependentActionClicked(JoinRandomRoom));
             lobbyButton.onClick.AddListener(GoToLobbyList);
             settingsButton.onClick.AddListener(OnSettingsButtonClicked);
-            // moved to OnConnectedToMaster
-            // PlayButton.onClick.AddListener(() => OnConnectionDependentActionClicked(JoinRandomRoom));
+
             settingsPopup.gameObject.SetActive(false);
             settingsPopup.Setup();
 
@@ -43,8 +42,6 @@ namespace Tanks
         {
             base.OnConnectedToMaster();
             Debug.Log("Connected to Master");
-            // moved here from Start
-            playButton.onClick.AddListener(() => OnConnectionDependentActionClicked(JoinRandomRoom));
             pendingAction?.Invoke();
             PhotonNetwork.AutomaticallySyncScene = false;
         }

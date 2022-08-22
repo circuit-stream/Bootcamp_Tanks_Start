@@ -30,7 +30,8 @@ namespace Tanks
         {
             SetupComponents();
 
-            // TODO: Get team from photon
+            // TODO(DONE): Get team from photon
+            player = photonView.Owner;
             teamConfig = FindObjectOfType<GameManager>().RegisterTank(this, 1);
 
             SetupRenderers();
