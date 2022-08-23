@@ -21,7 +21,6 @@ namespace Tanks
         private Dictionary<Player, PlayerLobbyEntry> lobbyEntries;
 
         private bool IsEveryPlayerReady => lobbyEntries.Values.ToList().TrueForAll(entry => entry.IsPlayerReady);
-
         private void AddLobbyEntry(Player player)
         {
             var entry = Instantiate(playerLobbyEntryPrefab, entriesHolder);
@@ -63,6 +62,8 @@ namespace Tanks
             Destroy(lobbyEntries[otherPlayer].gameObject);
             lobbyEntries.Remove(otherPlayer);
             UpdateStartButton();
+
+
         }
 
         public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)

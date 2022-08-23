@@ -35,16 +35,21 @@ namespace Tanks
 
         private void FindAveragePosition()
         {
+
             Vector3 averagePos = new Vector3();
             int numTargets = 0;
 
             for (int i = 0; i < targets.Count; i++)
             {
-                if (!targets[i].gameObject.activeSelf)
-                    continue;
+                if (targets[i].gameObject != null)
+                {
+                    if (!targets[i].gameObject.activeSelf)
+                        continue;
 
-                averagePos += targets[i].position;
-                numTargets++;
+                    averagePos += targets[i].position;
+                    numTargets++;
+                }
+                
             }
 
             if (numTargets > 0)
