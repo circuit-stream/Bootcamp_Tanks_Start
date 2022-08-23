@@ -53,6 +53,7 @@ namespace Tanks
             if (IsLocalPlayer)
             {
                 PlayerTeam = (player.ActorNumber - 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
+                player.NickName = PlayerPrefs.GetString("PlayerName");
             }
 
             playerName.text = player.NickName;
@@ -63,10 +64,12 @@ namespace Tanks
             UpdateVisuals();
         }
 
+      
         public void UpdateVisuals()
         {
+            Debug.Log($"Updating visuals for player {player.ActorNumber}: Nickname {player.NickName}: Team {PlayerTeam}");
             teamHolder.sprite = teamBackgrounds[PlayerTeam];
-
+            playerName.text = player.NickName;
             waitingText.SetActive(!IsPlayerReady);
             readyText.SetActive(IsPlayerReady);
         }
@@ -85,7 +88,7 @@ namespace Tanks
         {
             // TODO(DONE): Change player team
             PlayerTeam = (PlayerTeam + 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
-
+            // Update visuals?
         }
 
         private void OnReadyButtonClick(bool isReady)
@@ -97,5 +100,6 @@ namespace Tanks
 
             IsPlayerReady = isReady;
         }
+
     }
 }

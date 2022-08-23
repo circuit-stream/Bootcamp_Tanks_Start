@@ -18,7 +18,7 @@ namespace Tanks
         public Color color;
     }
 
-    public class GameManager : MonoBehaviour
+    public class GameManager : MonoBehaviourPunCallbacks
     {
         private const float MAX_DEPENETRATION_VELOCITY = float.PositiveInfinity;
         private const int ROUND_START_PHOTON_EVENT = 1;
@@ -107,7 +107,7 @@ namespace Tanks
 
             if (gameWinner != null)
             {
-                // TODO: Leave photon room
+                // TODO (DONE): Leave photon room
                 SceneManager.LoadScene("MainMenu");
             }
             else StartRound();
@@ -119,7 +119,7 @@ namespace Tanks
 
             foreach (var tankManager in tankManagers)
             {
-                if (tankManager.gameObject.activeSelf)
+                if (tankManager.gameObject != null && tankManager.gameObject.activeSelf)
                     numTanksLeft++;
             }
 
@@ -193,14 +193,16 @@ namespace Tanks
             StartCoroutine(RoundEnding());
         }
 
-        private void OnEnable()
+        public override void OnEnable()
         {
+            base.OnEnable();
             PhotonNetwork.AddCallbackTarget(this);
 
         }
 
-        private void OnDisable()
+        public override void OnDisable()
         {
+            base.OnDisable();
             PhotonNetwork.RemoveCallbackTarget(this);
 
         }
@@ -211,6 +213,37 @@ namespace Tanks
             {
                 StartCoroutine(HandleTankDeath());
             }
+        }
+
+        public override void OnPlayerLeftRoom(Player otherPlayer)
+        {
+            // remove the tank from the field
+            
+
+            // stop tracking the tank (managers and camera)
+            foreach (var tankManager in tankManagers)
+            {
+                if (tankManager.gameObject == null)
+                {
+                    tankManagers.Remove(tankManager);
+                }
+            }
+
+            foreach (var cam in cameraController.targets)
+            {
+                if (cam.gameObject == null)
+                {
+                    cameraController.targets.Remove(cam);
+                }
+            }
+
+            // finish game if only one tank left
+            if (OneTankLeft())
+            {
+                StartCoroutine(RoundEnding());
+            }
+            
+
         }
     }
 }
