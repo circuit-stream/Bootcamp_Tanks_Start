@@ -101,16 +101,24 @@ namespace Tanks
             if (roundWinner != null) roundWinner.Wins++;
 
             gameWinner = GetGameWinner();
+
             messageText.text = EndMessage();
 
-            yield return new WaitForSeconds(endDelay);
+            // NOTE: The null check on gameWinner is done before calling WaitForSeconds
+            // because the object will be null by the time the delay is finished
 
             if (gameWinner != null)
             {
+                yield return new WaitForSeconds(endDelay);
                 // TODO (DONE): Leave photon room
                 SceneManager.LoadScene("MainMenu");
             }
-            else StartRound();
+            else
+            {
+                yield return new WaitForSeconds(endDelay);
+                StartRound();
+            } 
+                
         }
 
         private bool OneTankLeft()
@@ -139,14 +147,20 @@ namespace Tanks
 
         private TankManager GetGameWinner()
         {
+
             foreach (var tankManager in tankManagers)
             {
-                if(tankManager.gameObject != null)
+                if (tankManager.gameObject != null)
                 {
                     if (tankManager.Wins == numRoundsToWin)
                         return tankManager;
                 }
-                
+
+            }
+
+            if (tankManagers.Count == 1)
+            {
+                return tankManagers[0];
             }
 
             return null;
@@ -162,10 +176,10 @@ namespace Tanks
             message += "\n\n\n\n";
 
             foreach (var tankManager in tankManagers)
-                if(tankManager.gameObject != null)
-                {
-                    message += $"{tankManager.ColoredPlayerName}: {tankManager.Wins} WINS\n";
-                }
+
+            {
+                message += $"{tankManager.ColoredPlayerName}: {tankManager.Wins} WINS\n";
+            }
 
             if (gameWinner != null)
                 message = $"{gameWinner.ColoredPlayerName} WINS THE GAME!";
@@ -175,8 +189,16 @@ namespace Tanks
 
         private void ResetAllTanks()
         {
+            
             foreach (var tankManager in tankManagers)
-                tankManager.Reset();
+            {
+                if(tankManager.GetComponent<TankManager>() != null)
+                {
+                    tankManager.Reset();
+                }
+                
+            }
+                
         }
 
         private void EnableTankControl()
@@ -224,24 +246,22 @@ namespace Tanks
 
         public override void OnPlayerLeftRoom(Player otherPlayer)
         {
-            // remove the tank from the field
-            
+
+            TankManager otherTank = null;
 
             // stop tracking the tank (managers and camera)
             foreach (var tankManager in tankManagers)
             {
-                if (tankManager.gameObject == null)
+                if (tankManager.photonView.ControllerActorNr == otherPlayer.ActorNumber)
                 {
-                    tankManagers.Remove(tankManager);
+                    otherTank = tankManager;
                 }
             }
 
-            foreach (var cam in cameraController.targets)
+            if (otherTank != null)
             {
-                if (cam.gameObject == null)
-                {
-                    cameraController.targets.Remove(cam);
-                }
+                cameraController.targets.Remove(otherTank.transform);
+                tankManagers.Remove(otherTank);
             }
 
             // finish game if only one tank left
@@ -249,7 +269,6 @@ namespace Tanks
             {
                 StartCoroutine(RoundEnding());
             }
-            
 
         }
     }

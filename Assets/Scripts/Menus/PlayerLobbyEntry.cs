@@ -67,7 +67,6 @@ namespace Tanks
       
         public void UpdateVisuals()
         {
-            Debug.Log($"Updating visuals for player {player.ActorNumber}: Nickname {player.NickName}: Team {PlayerTeam}");
             teamHolder.sprite = teamBackgrounds[PlayerTeam];
             playerName.text = player.NickName;
             waitingText.SetActive(!IsPlayerReady);
@@ -88,7 +87,6 @@ namespace Tanks
         {
             // TODO(DONE): Change player team
             PlayerTeam = (PlayerTeam + 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
-            // Update visuals?
         }
 
         private void OnReadyButtonClick(bool isReady)
