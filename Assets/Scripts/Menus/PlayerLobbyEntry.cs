@@ -59,21 +59,20 @@ namespace Tanks
 
             if (IsLocalPlayer)
             {
+                // Update the lobby's team property with the player
                 int teamNumber = player.ActorNumber - 1;
                 string teamName = $"T{teamNumber}";
 
-                PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { { teamName, player.ActorNumber} });
+                PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { { teamName, player.ActorNumber } });
 
-                // Update the player team property
                 PlayerTeam = (player.ActorNumber - 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
-                
+                player.NickName = PlayerPrefs.GetString("PlayerName");
             }
             else
             {
                 Destroy(changeTeamButton);
             }
 
-            player.NickName = PlayerPrefs.GetString("PlayerName");
             playerName.text = player.NickName;
             UpdateVisuals();
         }
@@ -81,7 +80,7 @@ namespace Tanks
         public void UpdateVisuals()
         {
             teamHolder.sprite = teamBackgrounds[PlayerTeam];
-
+            playerName.text = player.NickName;
             waitingText.SetActive(!IsPlayerReady);
             readyText.SetActive(IsPlayerReady);
         }
