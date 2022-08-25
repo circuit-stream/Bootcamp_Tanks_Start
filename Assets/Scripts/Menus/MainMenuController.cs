@@ -54,24 +54,7 @@ namespace Tanks
 
         public void JoinRandomRoom()
         {
-            // NOTE: There is only UI for four teams, so dynamically adjusting for more max players not currently required
-            // This is acknowleged technical debt - sorry future me!
-
-            string[] lobbyOptions = new string[4];
-            lobbyOptions[0] = "T0";
-            lobbyOptions[1] = "T1";
-            lobbyOptions[2] = "T2";
-            lobbyOptions[3] = "T3";
-
-            ExitGames.Client.Photon.Hashtable customProperties = new ExitGames.Client.Photon.Hashtable()
-            {
-                {"T0", -1 }, {"T1", -1}, {"T2", -1}, {"T3", -1}
-            };
-            
             RoomOptions roomOptions = new RoomOptions{ IsOpen = true, MaxPlayers = maxPlayersInRoom };
-            roomOptions.CustomRoomPropertiesForLobby = lobbyOptions;
-            roomOptions.CustomRoomProperties = customProperties;
-
             PhotonNetwork.JoinRandomOrCreateRoom(roomOptions: roomOptions);
         }
 

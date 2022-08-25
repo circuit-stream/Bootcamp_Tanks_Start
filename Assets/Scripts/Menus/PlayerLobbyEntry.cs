@@ -21,9 +21,6 @@ namespace Tanks
         [SerializeField] private List<Sprite> teamBackgrounds;
 
         private Player player;
-        private const int nonPlayerID = -1;
-        private int changeToTeam;
-        private int changeFromTeam;
 
         public int PlayerTeam // TODO(DONE): Update player team to other clients
         { 
@@ -59,12 +56,6 @@ namespace Tanks
 
             if (IsLocalPlayer)
             {
-                // Update the lobby's team property with the player
-                int teamNumber = player.ActorNumber - 1;
-                string teamName = $"T{teamNumber}";
-
-                PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { { teamName, player.ActorNumber } });
-
                 PlayerTeam = (player.ActorNumber - 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
                 player.NickName = PlayerPrefs.GetString("PlayerName");
             }
@@ -97,37 +88,21 @@ namespace Tanks
 
         private void OnChangeTeamButtonClicked()
         {
+            bool changed = false;
+            int tryTeam = (PlayerTeam + 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
+            var entries = FindObjectsOfType<PlayerLobbyEntry>();
 
-            bool openTeamFound = false;
-            int totalTeams = (int)PhotonNetwork.CurrentRoom.MaxPlayers;
-            string tryTeamName = "";
-            changeFromTeam = PlayerTeam;
-
-            // check each team index to find an unoccupied one
-            
-            for(int teamOffset = 1; teamOffset < totalTeams; teamOffset++)
+            while (!changed)
             {
-                tryTeamName = $"T{(PlayerTeam + teamOffset) % totalTeams}";
-                if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(tryTeamName) && !openTeamFound)
+                tryTeam = (tryTeam + 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
+                var trySprite = teamBackgrounds[tryTeam];
+                foreach(var entry in entries)
                 {
-                    // see if the team is available
-                    openTeamFound = (int)PhotonNetwork.CurrentRoom.CustomProperties[tryTeamName] == nonPlayerID;
-                    changeToTeam = (PlayerTeam + teamOffset) % totalTeams;
- 
+                    changed = !(entry.teamHolder.sprite == trySprite) || tryTeam == PlayerTeam;
                 }
-
             }
 
-            if (openTeamFound)
-            {
-                string newTeamName = $"T{changeToTeam}";
-                string oldTeamName = $"T{changeFromTeam}";
-
-                // update the team, as long as it is still available; also free up the old team at the same time
-                PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { { newTeamName, player.ActorNumber }, { oldTeamName, -1 } }, 
-                                                              new Hashtable { { newTeamName, -1} });
-            }
-
+            PlayerTeam = tryTeam;
         }
 
         private void OnReadyButtonClick(bool isReady)
@@ -140,16 +115,5 @@ namespace Tanks
             IsPlayerReady = isReady;
         }
 
-        public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
-        {
-   
-            PlayerTeam = changeToTeam;
-
-            //for (int i = 0; i < 4; i++)
-            //{
-            //    string teamName = $"T{i}";
-            //    Debug.Log($"Team {i} is occupied by {(int)PhotonNetwork.CurrentRoom.CustomProperties[teamName]}");
-            //}
-        }
     }
 }
