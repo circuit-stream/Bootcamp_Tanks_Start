@@ -58,8 +58,7 @@ namespace Tanks
             }
 
             TryFireMissile();
-            
-            
+
         }
 
         public void TryFireMissile()
@@ -76,20 +75,34 @@ namespace Tanks
                 fired = false;
                 currentLaunchForce = minLaunchForce;
 
-                shootingAudio.clip = chargingClip;
-                shootingAudio.Play();
+                //shootingAudio.clip = chargingClip;
+                //shootingAudio.Play();
+                photonView.RPC("UpdateChargingFX", RpcTarget.All, currentLaunchForce);
             }
             else if (Input.GetButton(FIRE_BUTTON) && !fired)
             {
                 currentLaunchForce += chargeSpeed * Time.deltaTime;
-
-                aimSlider.value = currentLaunchForce;
+                // aimSlider.value = currentLaunchForce;
+                photonView.RPC("UpdateChargingFX", RpcTarget.All, currentLaunchForce);
             }
             else if (Input.GetButtonUp(FIRE_BUTTON) && !fired)
             {
                 Fire();
             }
         }
+
+        [PunRPC]
+        private void UpdateChargingFX(float launchForce)
+        {
+            if (!shootingAudio.isPlaying)
+            {
+                shootingAudio.clip = chargingClip;
+                shootingAudio.Play();
+            }
+            
+            aimSlider.value = launchForce;
+        }
+
 
         private void TryFireHomingMissile()
         {
@@ -149,6 +162,8 @@ namespace Tanks
 
             shootingAudio.clip = fireClip;
             shootingAudio.Play();
+
+            aimSlider.value = minLaunchForce;
         }
     }
 }
