@@ -1,9 +1,10 @@
+using Photon.Pun;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Photon.Pun;
 using Photon.Realtime;
+using System.Collections;
 using ExitGames.Client.Photon;
 
 namespace Tanks
@@ -22,37 +23,40 @@ namespace Tanks
 
         private Player player;
 
-        public int PlayerTeam // TODO(DONE): Update player team to other clients
+        public int PlayerTeam // TODO (DONE): Update player team to other clients
         { 
-            get => player.CustomProperties.ContainsKey("Team") ? (int)player.CustomProperties["Team"] : 0;
+            get => player.CustomProperties.ContainsKey("Team") ? (int) player.CustomProperties["Team"] : 0;
             set
             {
-                ExitGames.Client.Photon.Hashtable hash = new ExitGames.Client.Photon.Hashtable { { "Team", value } };
+                ExitGames.Client.Photon.Hashtable hash = new ExitGames.Client.Photon.Hashtable { {  "Team", value } };
                 player.SetCustomProperties(hash);
-                
             }
         }  
 
         public bool IsPlayerReady // TODO(DONE): Update player ready status to other clients
-        { 
+        {
             get => player.CustomProperties.ContainsKey("IsReady") && (bool)player.CustomProperties["IsReady"];
             set
             {
-
                 ExitGames.Client.Photon.Hashtable hash = new ExitGames.Client.Photon.Hashtable { { "IsReady", value } };
                 player.SetCustomProperties(hash);
-            }
+            } 
 
         } 
 
+        private bool IsLocalPlayer => Equals(player, PhotonNetwork.LocalPlayer); // TODO(DONE): Get if this entry belongs to the local player
 
-        // TODO (DONE): Get if this entry belongs to the local player
-        private bool IsLocalPlayer => Equals(player, PhotonNetwork.LocalPlayer);
-
-        public void Setup(Player enteringPlayer)
+        public void Setup(Player entryPlayer)
         {
-            // TODO (DONE): Store and update player information
-            player = enteringPlayer;
+            // TODO(DONE): Store and update player information
+            player = entryPlayer;
+            if (IsLocalPlayer)
+            {
+                PlayerTeam = (player.ActorNumber - 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
+                player.NickName = PlayerPrefs.GetString("PlayerName");
+            }
+
+            playerName.text = player.NickName;
 
             if (IsLocalPlayer)
             {
@@ -68,6 +72,7 @@ namespace Tanks
             UpdateVisuals();
         }
 
+      
         public void UpdateVisuals()
         {
             teamHolder.sprite = teamBackgrounds[PlayerTeam];

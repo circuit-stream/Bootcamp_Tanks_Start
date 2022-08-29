@@ -6,6 +6,11 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections.Generic;
+using Photon.Realtime;
+using Photon.Pun;
+using ExitGames.Client.Photon;
+using System.Linq;
 
 namespace Tanks
 {
@@ -17,16 +22,17 @@ namespace Tanks
         [SerializeField] private PlayerLobbyEntry playerLobbyEntryPrefab;
         [SerializeField] private RectTransform entriesHolder;
 
-        // TODO: Create and Delete player entries
+        // TODO (DONE): Create and Delete player entries
         private Dictionary<Player, PlayerLobbyEntry> lobbyEntries;
-        private bool allPlayersReady => lobbyEntries.Values.ToList().TrueForAll(entry => entry.IsPlayerReady);
 
+        private bool IsEveryPlayerReady => lobbyEntries.Values.ToList().TrueForAll(entry => entry.IsPlayerReady);
         private void AddLobbyEntry(Player player)
         {
             var entry = Instantiate(playerLobbyEntryPrefab, entriesHolder);
             entry.Setup(player);
 
             // TODO (DONE): track created player lobby entries
+
             lobbyEntries.Add(player, entry);
         }
 
@@ -39,8 +45,9 @@ namespace Tanks
             startButton.onClick.AddListener(OnStartButtonClicked);
             startButton.gameObject.SetActive(false);
 
-            lobbyEntries = new Dictionary<Player, PlayerLobbyEntry>(PhotonNetwork.CurrentRoom.MaxPlayers);
+            PhotonNetwork.AutomaticallySyncScene = true;
 
+            lobbyEntries = new Dictionary<Player, PlayerLobbyEntry>(PhotonNetwork.CurrentRoom.MaxPlayers);
             foreach(var player in PhotonNetwork.CurrentRoom.Players.Values)
             {
                 AddLobbyEntry(player);
@@ -69,21 +76,33 @@ namespace Tanks
             UpdateStartButton();
         }
 
+        public override void OnMasterClientSwitched(Player newMasterClient)
+        {
+            UpdateStartButton();
+        }
+
         private void UpdateStartButton()
         {
-            // TODO: Show start button only to the master client and when all players are ready
-            startButton.gameObject.SetActive(PhotonNetwork.IsMasterClient && allPlayersReady);
-            
+            // TODO (DONE): Show start button only to the master client and when all players are ready
+            startButton.gameObject.SetActive(PhotonNetwork.IsMasterClient && IsEveryPlayerReady);
         }
 
         private void OnStartButtonClicked()
         {
-            // TODO: Load gameplay level for all clients
+            // TODO (DONE): Load gameplay level for all clients
+            if (!PhotonNetwork.IsMasterClient)
+            {
+                Debug.LogError("You fool! Trying to start game while not MasterClient!");
+                return;
+            }
+            PhotonNetwork.CurrentRoom.IsOpen = false;
+            PhotonNetwork.LoadLevel("Gameplay");
         }
 
         private void OnCloseButtonClicked()
         {
-            // TODO: Leave room
+            // TODO (DONE): Leave room
+            PhotonNetwork.LeaveRoom();
             SceneManager.LoadScene("MainMenu");
         }
 

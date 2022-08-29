@@ -18,14 +18,21 @@ namespace Tanks
         [SerializeField] private byte maxPlayersInRoom = 4;
         [SerializeField] TextMeshProUGUI connectingText;
 
+        private Action pendingAction;
+
         private void Start()
         {
- 
+            // TODO (DONE): Connect to photon server (using settings we just configured (app id))
             if (!PhotonNetwork.IsConnectedAndReady)
             {
-                connectingText.text = "Connecting...";
                 PhotonNetwork.ConnectUsingSettings();
+
             }
+
+            // playButton.onClick.AddListener(JoinRandomRoom);
+            playButton.onClick.AddListener(() => OnConnectionDependentActionClicked(JoinRandomRoom));
+            lobbyButton.onClick.AddListener(GoToLobbyList);
+            settingsButton.onClick.AddListener(OnSettingsButtonClicked);
 
             settingsPopup.gameObject.SetActive(false);
             settingsPopup.Setup();
@@ -36,15 +43,10 @@ namespace Tanks
 
         public override void OnConnectedToMaster()
         {
-            connectingText.text = " ";
-            playButton.onClick.AddListener(JoinRandomRoom);
-            lobbyButton.onClick.AddListener(GoToLobbyList);
-            settingsButton.onClick.AddListener(OnSettingsButtonClicked);
-        }
-
-        public override void OnDisconnected(DisconnectCause cause)
-        {
-            connectingText.text = "Disconnected: " + cause.ToString();
+            base.OnConnectedToMaster();
+            Debug.Log("Connected to Master");
+            pendingAction?.Invoke();
+            PhotonNetwork.AutomaticallySyncScene = false;
         }
 
         private void OnSettingsButtonClicked()
@@ -60,7 +62,23 @@ namespace Tanks
 
         public override void OnJoinedRoom()
         {
+            base.OnJoinedRoom();
             SceneManager.LoadScene("RoomLobby");
+        }
+
+        private void OnConnectionDependentActionClicked(Action action)
+        {
+            if(pendingAction != null)
+            {
+                return;
+            }
+
+            pendingAction = action;
+
+            if (PhotonNetwork.IsConnectedAndReady)
+            {
+                action();
+            }
         }
 
         private void GoToLobbyList()

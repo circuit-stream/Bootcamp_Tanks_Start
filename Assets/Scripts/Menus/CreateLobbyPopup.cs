@@ -3,6 +3,8 @@ using Photon.Realtime;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
+using Photon.Realtime;
 
 namespace Tanks
 {
@@ -24,28 +26,10 @@ namespace Tanks
         {
             if (string.IsNullOrEmpty(lobbyNameInput.text)) return;
 
-            // TODO: Create room
-            if (PhotonNetwork.IsConnectedAndReady)
-            {
-                Debug.Log($"Attempting to create a lobby called:{lobbyNameInput.text} ");
-                privateLobby = new TypedLobby(lobbyNameInput.text, LobbyType.Default);
-                
-            }
-            
-        }
+            // TODO (DONE): Create room
 
-        
-
-        public override void OnCreatedRoom()
-        {
-            base.OnCreatedRoom();
-            Debug.Log("Create room succeeded");
-
-        }
-        public override void OnCreateRoomFailed(short returnCode, string message)
-        {
-            base.OnCreateRoomFailed(returnCode, message);
-            Debug.Log("Create room failed");
+            RoomOptions roomOptions = new RoomOptions { IsOpen = true, MaxPlayers = 4 };
+            PhotonNetwork.CreateRoom(lobbyNameInput.text, roomOptions, TypedLobby.Default);
         }
 
         private void OnCloseButtonClicked()
@@ -70,6 +54,8 @@ namespace Tanks
             lobbyNameInput.ActivateInputField();
 
             SetPasswordFields(false);
+
+            base.OnEnable();
         }
 
         private void SetPasswordFields(bool isPrivate)

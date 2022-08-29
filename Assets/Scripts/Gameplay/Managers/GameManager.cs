@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Photon.Pun;
+using Photon.Realtime;
+using ExitGames.Client.Photon;
+
 
 namespace Tanks
 {
@@ -14,9 +18,10 @@ namespace Tanks
         public Color color;
     }
 
-    public class GameManager : MonoBehaviour
+    public class GameManager : MonoBehaviourPunCallbacks
     {
         private const float MAX_DEPENETRATION_VELOCITY = float.PositiveInfinity;
+        private const int ROUND_START_PHOTON_EVENT = 1;
 
         [Header("Balance")]
         [SerializeField] private int numRoundsToWin = 5;
@@ -54,12 +59,13 @@ namespace Tanks
 
         private void SpawnPlayerTank()
         {
-            // TODO: Get team from photon
-            var team = 1;
+            // TODO (DONE): Get team from photon
+            var team = (int)PhotonNetwork.LocalPlayer.CustomProperties["Team"];
+
             var config = teamConfigs[team];
             var spawnPoint = config.spawnPoint;
 
-            Instantiate(tankPrefab, spawnPoint.position, spawnPoint.rotation);
+            PhotonNetwork.Instantiate(tankPrefab.name, spawnPoint.position, spawnPoint.rotation);
         }
 
         private void StartRound()
@@ -85,6 +91,8 @@ namespace Tanks
 
         private IEnumerator RoundEnding()
         {
+            PhotonNetwork.LeaveRoom();
+
             DisableTankControl();
 
             roundWinner = null;
@@ -93,16 +101,24 @@ namespace Tanks
             if (roundWinner != null) roundWinner.Wins++;
 
             gameWinner = GetGameWinner();
+
             messageText.text = EndMessage();
 
-            yield return new WaitForSeconds(endDelay);
+            // NOTE: The null check on gameWinner is done before calling WaitForSeconds
+            // because the object will be null by the time the delay is finished
 
             if (gameWinner != null)
             {
-                // TODO: Leave photon room
+                yield return new WaitForSeconds(endDelay);
+                // TODO (DONE): Leave photon room
                 SceneManager.LoadScene("MainMenu");
             }
-            else StartRound();
+            else
+            {
+                yield return new WaitForSeconds(endDelay);
+                StartRound();
+            } 
+                
         }
 
         private bool OneTankLeft()
@@ -111,7 +127,7 @@ namespace Tanks
 
             foreach (var tankManager in tankManagers)
             {
-                if (tankManager.gameObject.activeSelf)
+                if (tankManager.gameObject != null && tankManager.gameObject.activeSelf)
                     numTanksLeft++;
             }
 
@@ -131,10 +147,20 @@ namespace Tanks
 
         private TankManager GetGameWinner()
         {
+
             foreach (var tankManager in tankManagers)
             {
-                if (tankManager.Wins == numRoundsToWin)
-                    return tankManager;
+                if (tankManager.gameObject != null)
+                {
+                    if (tankManager.Wins == numRoundsToWin)
+                        return tankManager;
+                }
+
+            }
+
+            if (tankManagers.Count == 1)
+            {
+                return tankManagers[0];
             }
 
             return null;
@@ -150,7 +176,10 @@ namespace Tanks
             message += "\n\n\n\n";
 
             foreach (var tankManager in tankManagers)
+
+            {
                 message += $"{tankManager.ColoredPlayerName}: {tankManager.Wins} WINS\n";
+            }
 
             if (gameWinner != null)
                 message = $"{gameWinner.ColoredPlayerName} WINS THE GAME!";
@@ -160,8 +189,16 @@ namespace Tanks
 
         private void ResetAllTanks()
         {
+            
             foreach (var tankManager in tankManagers)
-                tankManager.Reset();
+            {
+                if(tankManager.GetComponent<TankManager>() != null)
+                {
+                    tankManager.Reset();
+                }
+                
+            }
+                
         }
 
         private void EnableTankControl()
@@ -183,6 +220,56 @@ namespace Tanks
             if (!OneTankLeft()) yield break;
 
             StartCoroutine(RoundEnding());
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            PhotonNetwork.AddCallbackTarget(this);
+
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            PhotonNetwork.RemoveCallbackTarget(this);
+
+        }
+
+        public void OnEvent(EventData photonEvent)
+        {
+            if(photonEvent.Code == TankHealth.TANK_DIED_PHOTON_EVENT)
+            {
+                StartCoroutine(HandleTankDeath());
+            }
+        }
+
+        public override void OnPlayerLeftRoom(Player otherPlayer)
+        {
+
+            TankManager otherTank = null;
+
+            // stop tracking the tank (managers and camera)
+            foreach (var tankManager in tankManagers)
+            {
+                if (tankManager.photonView.ControllerActorNr == otherPlayer.ActorNumber)
+                {
+                    otherTank = tankManager;
+                }
+            }
+
+            if (otherTank != null)
+            {
+                cameraController.targets.Remove(otherTank.transform);
+                tankManagers.Remove(otherTank);
+            }
+
+            // finish game if only one tank left
+            if (OneTankLeft())
+            {
+                StartCoroutine(RoundEnding());
+            }
+
         }
     }
 }
