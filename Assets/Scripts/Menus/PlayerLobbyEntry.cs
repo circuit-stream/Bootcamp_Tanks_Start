@@ -1,6 +1,7 @@
 using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -76,6 +77,8 @@ namespace Tanks
             }
 
             UpdateVisuals();
+
+            Debug.Log($"{player}, {player.ActorNumber} in team {PlayerTeam}");
         }
 
         public void UpdateVisuals()
@@ -101,7 +104,9 @@ namespace Tanks
         private void OnChangeTeamButtonClicked()
         {
             // Change player team
+
             PlayerTeam = (PlayerTeam + 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
+            UpdateVisuals();
         }
 
         private void OnReadyButtonClick(bool isReady)
