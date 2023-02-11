@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Photon.Pun;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Tanks
@@ -13,7 +14,9 @@ namespace Tanks
         public AudioSource movementAudio;
         public AudioClip engineIdling;
         public AudioClip engineDriving;
-		public float pitchRange = 0.2f;
+        public float pitchRange = 0.2f;
+
+        private PhotonView photonView;
 
         private Rigidbody tankRigidbody;
         private float movementInputValue;
@@ -28,6 +31,7 @@ namespace Tanks
 
         private void Awake()
         {
+            photonView = GetComponent<PhotonView>();
             tankRigidbody = GetComponent<Rigidbody>();
 
             tankRigidbody.isKinematic = false;
@@ -58,8 +62,13 @@ namespace Tanks
 
         private void Update()
         {
-            movementInputValue = Input.GetAxis (MOVEMENT_AXIS_NAME);
-            turnInputValue = Input.GetAxis (TURN_AXIS_NAME);
+            if (!photonView.IsMine)
+            {
+                return;
+            }
+
+            movementInputValue = Input.GetAxis(MOVEMENT_AXIS_NAME);
+            turnInputValue = Input.GetAxis(TURN_AXIS_NAME);
 
             EngineAudio();
         }
@@ -67,14 +76,14 @@ namespace Tanks
         private void EngineAudio()
         {
             // If there is no input (the tank is stationary)...
-            if (Mathf.Abs (movementInputValue) < 0.1f && Mathf.Abs (turnInputValue) < 0.1f)
+            if (Mathf.Abs(movementInputValue) < 0.1f && Mathf.Abs(turnInputValue) < 0.1f)
             {
                 // ... and if the audio source is currently playing the driving clip...
                 if (movementAudio.clip == engineDriving)
                 {
                     // ... change the clip to idling and play it.
                     movementAudio.clip = engineIdling;
-                    movementAudio.pitch = Random.Range (originalPitch - pitchRange, originalPitch + pitchRange);
+                    movementAudio.pitch = Random.Range(originalPitch - pitchRange, originalPitch + pitchRange);
                     movementAudio.Play();
                 }
             }
@@ -93,7 +102,11 @@ namespace Tanks
 
         private void FixedUpdate()
         {
-            // TODO: Only allow owner of this tank to move it
+            // Only allow owner of this tank to move it
+            if (!photonView.IsMine)
+            {
+                return;
+            }
 
             Move();
             Turn();
@@ -110,7 +123,7 @@ namespace Tanks
         private void Turn()
         {
             float turn = turnInputValue * turnSpeed * Time.deltaTime;
-            Quaternion turnRotation = Quaternion.Euler (0f, turn, 0f);
+            Quaternion turnRotation = Quaternion.Euler(0f, turn, 0f);
 
             tankRigidbody.MoveRotation(tankRigidbody.rotation * turnRotation);
         }
