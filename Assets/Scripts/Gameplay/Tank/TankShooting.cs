@@ -1,4 +1,6 @@
-﻿using Photon.Pun;
+﻿using ExitGames.Client.Photon;
+using Photon.Pun;
+using Photon.Realtime;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,6 +9,8 @@ namespace Tanks
     public class TankShooting : MonoBehaviour
     {
         private const string FIRE_BUTTON = "Fire1";
+
+        public const int CHARGING_UP_SHOOTING = 2;
 
         public Rigidbody shell;
         public Transform fireTransform;
@@ -28,6 +32,12 @@ namespace Tanks
         {
             currentLaunchForce = minLaunchForce;
             aimSlider.value = minLaunchForce;
+            PhotonNetwork.AddCallbackTarget(this);
+        }
+
+        private void OnDisable()
+        {
+            PhotonNetwork.RemoveCallbackTarget(this);
         }
 
         private void Start()
@@ -64,11 +74,15 @@ namespace Tanks
             {
                 currentLaunchForce += chargeSpeed * Time.deltaTime;
 
-                aimSlider.value = currentLaunchForce;
+                photonView.RPC(
+                    "OnUpdateChargingAmount",
+                    RpcTarget.All,
+                    currentLaunchForce);
             }
             else if (Input.GetButtonUp(FIRE_BUTTON) && !fired)
             {
                 Fire();
+                photonView.RPC("ResetChargeAmount", RpcTarget.All);
             }
         }
 
@@ -99,5 +113,18 @@ namespace Tanks
             shootingAudio.Play();
 
         }
+
+        [PunRPC]
+        private void OnUpdateChargingAmount(float launchForce)
+        {
+            aimSlider.value = launchForce;
+        }
+
+        [PunRPC]
+        private void ResetChargeAmount()
+        {
+            aimSlider.value = 0;
+        }
+
     }
 }
