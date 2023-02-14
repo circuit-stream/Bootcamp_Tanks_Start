@@ -66,6 +66,7 @@ namespace Tanks
             if (IsLocalPlayer)
             {
                 PlayerTeam = (player.ActorNumber -1) % PhotonNetwork.CurrentRoom.MaxPlayers;
+                player.NickName = PhotonNetwork.NickName;
             }
 
             playerName.text = player.NickName;
