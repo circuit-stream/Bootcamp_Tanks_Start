@@ -12,6 +12,7 @@ namespace Tanks
         public float explosionForce = 1000f;
         public float maxLifeTime = 2f;
         public float explosionRadius = 5f;
+        public bool hasHitShield = false;
 
         private void Start()
         {
@@ -20,20 +21,56 @@ namespace Tanks
 
         private void OnTriggerEnter(Collider other)
         {
+            PlayExplosionEffect();
+
+            TryDamageTanks(other);
+
+            var photonView = GetComponent<PhotonView>();
+            if (photonView != null)
+            {
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    PhotonNetwork.Destroy(photonView);
+                } else
+                {
+                    Destroy(gameObject);
+                }
+            }
+        }
+
+        private void OnDestroy()
+        {
+            PlayExplosionEffect();
+        }
+
+        public void PlayExplosionEffect()
+        {
+            if (explosionParticles == null)
+            {
+                return;
+            }
             explosionParticles.transform.parent = null;
             explosionParticles.Play();
             explosionAudio.Play();
 
             ParticleSystem.MainModule mainModule = explosionParticles.main;
             Destroy(explosionParticles.gameObject, mainModule.duration);
-            Destroy(gameObject);
-
-            TryDamageTanks();
+            explosionParticles = null;
         }
 
-        private void TryDamageTanks()
+        private bool IsShieldBlocking(Vector3 tankPosition)
         {
-            if (!PhotonNetwork.IsMasterClient)
+            var direction = tankPosition - transform.position;
+            return Physics.Raycast(
+                transform.position,
+                direction,
+                direction.magnitude,
+                LayerMask.GetMask("Shield"));
+        }
+
+        private void TryDamageTanks(Collider other)
+        {
+            if (!PhotonNetwork.IsMasterClient || other.gameObject.layer == LayerMask.NameToLayer("Shield"))
             {
                 return;
             }
@@ -49,8 +86,11 @@ namespace Tanks
                 }
 
                 Rigidbody targetRigidbody = photonView.GetComponent<Rigidbody>();
-                //tankManager.OnHit(explosionForce, transform.position, explosionRadius,
-                //CalculateDamage(targetRigidbody.position));
+
+                if (IsShieldBlocking(targetRigidbody.position))
+                {
+                    continue;
+                }
 
                 photonView.RPC(
                     "OnHit",

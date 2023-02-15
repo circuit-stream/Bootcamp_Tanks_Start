@@ -216,12 +216,16 @@ MonoBehaviour:
   tankMask:
     serializedVersion: 2
     m_Bits: 512
+  shieldMask:
+    serializedVersion: 2
+    m_Bits: 2048
   explosionParticles: {fileID: 198540207889710882}
   explosionAudio: {fileID: 82110601301053950}
   maxDamage: 100
   explosionForce: 1000
   maxLifeTime: 2
   explosionRadius: 5
+  hasHitShield: 0
 --- !u!114 &1730594292202612504
 MonoBehaviour:
   m_ObjectHideFlags: 0

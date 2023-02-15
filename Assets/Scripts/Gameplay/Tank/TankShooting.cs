@@ -9,6 +9,7 @@ namespace Tanks
     public class TankShooting : MonoBehaviour
     {
         private const string FIRE_BUTTON = "Fire1";
+        private const string HOMING_MISSILE_BUTTON = "Fire2";
 
         public const int CHARGING_UP_SHOOTING = 2;
 
@@ -21,6 +22,7 @@ namespace Tanks
         public float minLaunchForce = 15f;
         public float maxLaunchForce = 30f;
         public float maxChargeTime = 0.75f;
+        public float homingMissileInstantiateOffset = 4f;
 
         private PhotonView photonView;
 
@@ -84,6 +86,55 @@ namespace Tanks
                 Fire();
                 photonView.RPC("ResetChargeAmount", RpcTarget.All);
             }
+        }
+
+        private void TryFireHomingMissile()
+        {
+            if (!Input.GetButtonDown(HOMING_MISSILE_BUTTON))
+            {
+                return;
+            }
+
+            if (!GetClickPosition(out var clickPosition))
+            {
+                return;
+            }
+
+            Collider[] colliders = Physics.OverlapSphere(clickPosition, 5, LayerMask.GetMask("Players"));
+
+            foreach(var tankCollider in colliders)
+            {
+                if(tankCollider.gameObject == gameObject)
+                {
+                    continue;
+                }
+
+                var direction = (tankCollider.transform.position - transform.position).normalized;
+
+                var position = transform.position + direction * homingMissileInstantiateOffset + Vector3.up;
+
+                object[] data =
+                {
+                    tankCollider.GetComponent<PhotonView>().ViewID
+                };
+
+                PhotonNetwork.Instantiate(
+                    nameof(HomingMissile),
+                    position,
+                    Quaternion.LookRotation(transform.forward),
+                    0,
+                    data);
+            }
+        }
+
+        private bool GetClickPosition(out Vector2 clickPosition)
+        {
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            var gotHit = Physics.Raycast(ray, out var hit, 1000, LayerMask.GetMask("Default"));
+
+            clickPosition = gotHit ? hit.point : Vector3.zero;
+            return gotHit;
         }
 
         private void Fire()
