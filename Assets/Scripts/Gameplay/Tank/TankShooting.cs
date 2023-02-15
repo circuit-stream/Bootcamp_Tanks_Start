@@ -10,6 +10,7 @@ namespace Tanks
     {
         private const string FIRE_BUTTON = "Fire1";
         private const string HOMING_MISSILE_BUTTON = "Fire2";
+        private const string AIRSTRIKE_BUTTON = "Fire3";
 
         public const int CHARGING_UP_SHOOTING = 2;
 
@@ -86,6 +87,8 @@ namespace Tanks
                 Fire();
                 photonView.RPC("ResetChargeAmount", RpcTarget.All);
             }
+
+            photonView.RPC("TryFireAirstrike", RpcTarget.All);
         }
 
         private void TryFireHomingMissile()
@@ -127,7 +130,22 @@ namespace Tanks
             }
         }
 
-        private bool GetClickPosition(out Vector2 clickPosition)
+        [PunRPC]
+        private void TryFireAirstrike()
+        {
+            if (!Input.GetButtonDown(AIRSTRIKE_BUTTON)) { return; }
+            if (!GetClickPosition(out var clickPosition)) { return; }
+
+            var position = clickPosition;
+
+            PhotonNetwork.Instantiate(
+                nameof(AirStrike),
+                position,
+                Quaternion.identity,
+                0);
+        }
+
+        private bool GetClickPosition(out Vector3 clickPosition)
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
