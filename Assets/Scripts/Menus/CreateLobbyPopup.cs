@@ -28,6 +28,12 @@ namespace Tanks
                 IsOpen = true,
                 MaxPlayers = 4
             };
+
+            if(disablePrivateLobbyButton.gameObject.activeSelf)
+            {
+                roomOptions.IsVisible = false;
+            }
+
             PhotonNetwork.CreateRoom(lobbyNameInput.text, roomOptions, TypedLobby.Default);
         }
 

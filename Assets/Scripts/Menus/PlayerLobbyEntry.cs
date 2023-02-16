@@ -22,6 +22,7 @@ namespace Tanks
 
         private Player player;
 
+
         public int PlayerTeam 
         {
             //Update player team to other clients
@@ -97,12 +98,15 @@ namespace Tanks
 
             waitingButton.gameObject.SetActive(IsLocalPlayer);
             readyButton.gameObject.SetActive(false);
+
+
         }
 
         private void OnChangeTeamButtonClicked()
         {
             // Change player team
             PlayerTeam = (PlayerTeam + 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
+
         }
 
         private void OnReadyButtonClick(bool isReady)
