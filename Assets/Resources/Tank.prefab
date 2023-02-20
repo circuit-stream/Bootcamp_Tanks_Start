@@ -10662,6 +10662,9 @@ MonoBehaviour:
   minLaunchForce: 15
   maxLaunchForce: 30
   maxChargeTime: 0.75
+  homingMissileInstantiateOffset: 4
+  airStrikePrefab: {fileID: 2991024517168967846, guid: e4b7615eab6f72d4ca3240068173613a,
+    type: 3}
 --- !u!114 &2116531336854615247
 MonoBehaviour:
   m_ObjectHideFlags: 0

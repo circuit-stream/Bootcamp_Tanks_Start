@@ -29,7 +29,8 @@ namespace Tanks
             set 
             {
                 Hashtable hash = new Hashtable { { "Team", value } };
-                player.SetCustomProperties(hash);
+                Hashtable expected = new Hashtable { { "Team", player.CustomProperties["Team"] } };
+                player.SetCustomProperties(hash, expected);
             }
         }
 
@@ -42,6 +43,7 @@ namespace Tanks
             set
             {
                 Hashtable hash = new Hashtable { { "IsReady", value } };
+                
                 player.SetCustomProperties(hash);
             } 
         
@@ -101,7 +103,9 @@ namespace Tanks
         private void OnChangeTeamButtonClicked()
         {
             // Change player team
+ //           int tryTeam = (PlayerTeam + 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
             PlayerTeam = (PlayerTeam + 1) % PhotonNetwork.CurrentRoom.MaxPlayers;
+
         }
 
         private void OnReadyButtonClick(bool isReady)
